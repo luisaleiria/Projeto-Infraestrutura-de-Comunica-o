@@ -12,10 +12,10 @@ class cliente():
     def __init__(self, sckt_family, sckt_type, sckt_binding, MAX_BUFFER):
         self.sckt = skt.socket(sckt_family, sckt_type)
         self.sckt.bind(sckt_binding) # socket vinculado ao endereço de sckt_binding
-        self.sckt.settimeout(0.1) # se passar desse tempo da um timeOut (tempo de espera)
+        #self.sckt.settimeout(0.1) # se passar desse tempo da um timeOut (tempo de espera)
 
-        if self.sckt is None: # entra aqui se o socket nao puder ser criado
-            raise Exception ("Socket indisponivel")
+        #if self.sckt is None: # entra aqui se o socket nao puder ser criado
+        #    raise Exception ("Socket indisponivel")
         
         self.MAX_BUFFER = MAX_BUFFER # mesmo tam max do buffer original
 
