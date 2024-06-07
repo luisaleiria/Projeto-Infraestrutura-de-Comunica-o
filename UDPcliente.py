@@ -4,7 +4,7 @@ import time
 
 
 MAX_BUFFER = 1024 #tam max dos dados
-addr_bind = ('hostLocal', 8080) #end e porta que o cliente esta vinculado
+addr_bind = ('localhost', 8080) #end e porta que o cliente esta vinculado
 addr_target = ('127.0.0.1', 7070) #end e porta do servidor
 
 
