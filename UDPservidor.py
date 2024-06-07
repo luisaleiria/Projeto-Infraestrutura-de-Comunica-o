@@ -65,6 +65,7 @@ def main():
         server.send(client_address, filename.encode('utf-8'))
         
         server.send_file(client_address, filename) # envia o arquivo renomeado para o cliente
+        time.sleep(0.1)  # pequena pausa antes de remover o arquivo
         os.remove(filename) # remove arquivo apos o envio 
 
 if __name__ == "__main__":
