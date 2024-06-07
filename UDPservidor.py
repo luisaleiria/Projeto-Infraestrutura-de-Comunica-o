@@ -9,10 +9,10 @@ class servidor:
     def __init__(self, sckt_family, sckt_type, sckt_binding, MAX_BUFFER):
         self.sckt = skt.socket(sckt_family, sckt_type)
         self.sckt.bind(sckt_binding) # Vincula o socket ao endereço sckt_binding.
-        self.sckt.settimeout(0.1)  # se passar desse tempo dá um timeout
+        #self.sckt.settimeout(0.1)  # se passar desse tempo dá um timeout
         
-        if self.sckt is None: # se o socket nao puder ser criado
-            raise Exception("Socket indisponível")
+        #if self.sckt is None: # se o socket nao puder ser criado
+        #    raise Exception("Socket indisponível")
         
         self.MAX_BUFFER = MAX_BUFFER
 
