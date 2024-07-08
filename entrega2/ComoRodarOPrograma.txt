@@ -1,0 +1,6 @@
+COMO RODAR O PROGRAMA
+
+1- Abrir o cliente e o servidor no VS
+2- Primeiro colocar o servidor para rodar
+3- Abrir outro terminal e colocar o cliente para rodar
+4- Copiar o Path do arquivo txt (Convite de casamento) ou do arquivo da imagem(Ratinho do Meme) e colar no terminal do cliente
