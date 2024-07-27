@@ -2,10 +2,10 @@ import socket as skt
 import os
 import time
 import random
+import threading
 
 MAX_BUFFER = 1024  # tamanho máximo dos dados
 ADDR_BIND = ('localhost', 7070)  # endereço e porta do servidor
-
 LOSS_PROBABILITY = 0.3  # probabilidade de perda de pacote
 
 
@@ -40,32 +40,6 @@ class RDT:
                 print(f"Envia ACK pacote num {recv_seq_num}")
                 self.seq_num = 1 - self.seq_num #alterna o num de seq
                 return msg, addr # retorna a mensagem e o endereço pro servidor
-          
-    # Envia um arquivo 
-    def send_file(self, addr, filepath):
-        filename = os.path.basename(filepath) #recebe o nome do arquivo
-        self.send(addr, filename.encode('utf-8')) #envia o nme do arquivo
-
-        #Abre o arquivo em leitura binária
-        with open(filepath, 'rb') as f:
-            while True:
-                data = f.read(self.max_buffer - 2) #le o arquivo de 1024 em 1024 bytes
-                if not data:
-                    break #termina se n ouver dados
-                self.send(addr, data) #envia oq foi lido
-                time.sleep(0.1)  # tempo para evitar congestionamento
-
-        self.send(addr, b'EOF') #avisa que chegou ao fim do arquivo
-
-#recebe um arquivo e muda o nome especificado
-    def receive_file(self, save_as):
-        with open(save_as, 'wb') as f: #abre um arquivo
-            while True:
-                data, _ = self.receive() #recebe os dados
-                if data == b'EOF':
-                    print("Recepção do arquivo concluída.")
-                    break #termina ao chegar no fim do arquivo
-                f.write(data) # escreve os dados no arquivo
 
 
 
@@ -74,18 +48,73 @@ class Servidor:
         self.sckt = skt.socket(sckt_family, sckt_type) #cria o socket
         self.sckt.bind(sckt_binding) # vincula o socket ao endereço dado
         self.rdt = RDT(self.sckt, max_buffer) #cria uma instancia do rdt
+        self.users = {} # cria uma instancia do usuario
+        self.accommodations = {} # cria uma instancia da acomodação
+        self.reservations = {} # cria uma instancia da reserva
 
-    def receive_file(self):
-        filename, client_addr = self.rdt.receive() #recebe o nome do arquivo
-        filename = filename.decode('utf-8') #traduz nome do arquivo
-        print(f"Arquivo recebido: {filename}")
-        new_filename = 'retornado_' + filename #cria o nome com retornado
-        self.rdt.receive_file('recebido_' + filename) #recebe o arquivo
-        os.rename('recebido_' + filename, new_filename) #renomeia o arquivo
-        return new_filename, client_addr #retorna o nome novo e o endereço do cliente
+    def handle_client(self, addr):
+         # Loop para lidar com as mensagens do cliente
+        while True:
+            msg, client_addr = self.rdt.receive()
+            if client_addr != addr:  # Verifica se a mensagem veio do endereço do cliente certo
+                continue # Se não, ignora a mensagem e continua o loop
+            msg = msg.decode('utf-8').strip()  # Decodifica a mensagem recebida de bytes para string e remove espaços em branco
+            print(f"Mensagem recebida de {client_addr}: {msg}")
+            
+            #Switch case para entrada nos comandos certos
+            if msg.startswith("login"):
+                self.login(msg, client_addr)
+            elif msg == "logout":
+                self.logout(client_addr)
+            elif msg.startswith("create"):
+                self.create_accommodation(msg, client_addr)
+            elif msg == "list:myacmd":
+                self.list_my_accommodations(client_addr)
+            elif msg == "list:acmd":
+                self.list_accommodations(client_addr)
+            elif msg == "list:myrsv":
+                self.list_my_reservations(client_addr)
+            elif msg.startswith("book"):
+                self.book_accommodation(msg, client_addr)
+            elif msg.startswith("cancel"):
+                self.cancel_reservation(msg, client_addr)
 
-    def send_file(self, client_addr, filepath):
-        self.rdt.send_file(client_addr, filepath) #envia o arquivo pro cliente
+    def login(self, msg, addr):
+        _, username = msg.split() # Divide a mensagem recebida, login primeiro e nome de usuário dps
+        if username in self.users.values():  # Verifica se o nome de usuário já existe
+            self.rdt.send(addr, b"Nome de usuario ja esta em uso.")
+        else: #Se não adiciona adiciona o endereço e nome do cliente na lista de usuários
+            self.users[addr] = username
+            self.rdt.send(addr, b"Voce esta online!") #menagem de confirmação
+            print(f"{username} logou com sucesso em {addr}")
+            
+    def logout(self, addr):
+        if addr in self.users: #Verifica se está nos usuários ativos
+            username = self.users.pop(addr) #remove da lista de usuários ativos
+            self.rdt.send(addr, b"Logout bem-sucedido.") #mensagem de confirmação
+            print(f"{username} deslogou de {addr}")
+            
+    def create_accommodation(self, msg, addr):
+        parts = msg.split() #Divide a msg recebida, cada parte é separada por espaços
+        if len(parts) < 4: #Verifica se tem tudo que precisa pra criar
+            self.rdt.send(addr, b"Argumentos insuficientes para criar acomodacao.")
+            return
+        
+        #Atribui as partes da mensagem as variáveis da acomodação
+        _, name, location, description = parts[0], parts[1], parts[2], ' '.join(parts[3:])
+        user = self.users[addr] #pega o número de usuario de quem ta criado a acomodação
+        key = (name, location) #cria uma chave de identificação usando a tupla de nome e localização
+        if key in self.accommodations: #verifica se a acom
+            self.rdt.send(addr, b"Acomodacao ja existe.")
+        else:
+            self.accommodations[key] = {
+                'owner': user,
+                'location': location,
+                'description': description,
+                'availability': [f"{i:02d}/07/2024" for i in range(17, 23)]
+            }
+            self.rdt.send(addr, f"Acomodação {name} criada com sucesso!".encode('utf-8'))
+            self.notify_all_users(f"{user} criou a acomodação {name} em {location}.")
 
 
 def main_servidor():
