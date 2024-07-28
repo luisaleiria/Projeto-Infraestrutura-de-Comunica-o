@@ -87,6 +87,7 @@ class Servidor:
             self.users[addr] = username
             self.rdt.send(addr, b"Voce esta online!")  # mensagem de confirmação
             print(f"{username} logou com sucesso em {addr}")
+            print(f"lista de usuarios: {self.users}")
 
     def logout(self, addr):
         if addr in self.users:  # Verifica se está nos usuários ativos
@@ -113,6 +114,7 @@ class Servidor:
                 'description': description,  # descrição
                 'availability': [f"{i:02d}/07/2024" for i in range(17, 23)]  # dias disponíveis
             }
+            print(f"acomodacao criada {self.accommodations[key]}")
             self.rdt.send(addr, f"Acomodação {name} criada com sucesso!".encode('utf-8'))  # Envia uma mensagem dizendo que criou
             self.notify_all_users(f"{user} criou a acomodação {name} em {location}.")  # Notifica para todos os usuários que uma acomodação foi criada
 

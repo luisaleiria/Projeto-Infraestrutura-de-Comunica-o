@@ -7,7 +7,7 @@ MAX_BUFFER = 1024  # tamanho máximo dos dados
 ADDR_BIND = ('localhost', 8080)  # endereço e porta do cliente
 ADDR_TARGET = ('127.0.0.1', 7070)  # endereço e porta do servidor
 
-LOSS_PROBABILITY = 0.3  # probabilidade de perda de pacote
+LOSS_PROBABILITY = 0 # probabilidade de perda de pacote
 
 
 class RDT:
