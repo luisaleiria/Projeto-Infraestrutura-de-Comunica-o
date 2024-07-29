@@ -97,7 +97,6 @@ class Cliente:
         while self.running:
             msg, addr = self.rdt.receive()
             print(f"Mensagem do servidor: {msg.decode('utf-8')}")
-            time.sleep(0.1)
             
 
     def start_listener(self):
@@ -141,6 +140,7 @@ def main_cliente():
     except KeyboardInterrupt:
         print("Encerrando o cliente...")
         client.stop_listener()
+        
 
 
 if __name__ == "__main__":

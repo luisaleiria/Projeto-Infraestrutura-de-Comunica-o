@@ -1,6 +1,6 @@
 import socket as skt
-import threading
 import time
+import threading
 import random
 
 MAX_BUFFER = 1024  # tamanho máximo dos dados
@@ -90,16 +90,17 @@ class Cliente:
 
     def cancel_reservation(self, owner, name, location, day):
         self.rdt.send(self.server_addr, f"cancel {owner} {name} {location} {day}".encode('utf-8'))
-        #msg, _ = self.rdt.receive()
+        msg, _ = self.rdt.receive()
         #print(msg.decode('utf-8'))
 
     def listen_for_messages(self):
         while self.running:
             msg, addr = self.rdt.receive()
             print(f"Mensagem do servidor: {msg.decode('utf-8')}")
-            time.sleep(0.1)
+            
 
     def start_listener(self):
+        #self.running = True
         self.listener_thread = threading.Thread(target=self.listen_for_messages)
         self.listener_thread.start()
 
@@ -139,6 +140,7 @@ def main_cliente():
     except KeyboardInterrupt:
         print("Encerrando o cliente...")
         client.stop_listener()
+        
 
 
 if __name__ == "__main__":
