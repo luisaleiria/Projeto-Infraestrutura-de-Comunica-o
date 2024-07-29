@@ -1,10 +1,10 @@
 import socket as skt
-import time
 import threading
+import time
 import random
 
 MAX_BUFFER = 1024  # tamanho máximo dos dados
-ADDR_BIND = ('localhost', 8080)  # endereço e porta do cliente
+ADDR_BIND = ('localhost', 0)  # endereço e porta do cliente
 ADDR_TARGET = ('127.0.0.1', 7070)  # endereço e porta do servidor
 
 LOSS_PROBABILITY = 0 # probabilidade de perda de pacote
@@ -90,7 +90,7 @@ class Cliente:
 
     def cancel_reservation(self, owner, name, location, day):
         self.rdt.send(self.server_addr, f"cancel {owner} {name} {location} {day}".encode('utf-8'))
-        msg, _ = self.rdt.receive()
+        #msg, _ = self.rdt.receive()
         #print(msg.decode('utf-8'))
 
     def listen_for_messages(self):
@@ -98,10 +98,8 @@ class Cliente:
             msg, addr = self.rdt.receive()
             print(f"Mensagem do servidor: {msg.decode('utf-8')}")
             time.sleep(0.1)
-            
 
     def start_listener(self):
-        #self.running = True
         self.listener_thread = threading.Thread(target=self.listen_for_messages)
         self.listener_thread.start()
 

@@ -116,7 +116,7 @@ class Servidor:
             }
             print(f"acomodacao criada {self.accommodations[key]}")
             self.rdt.send(addr, f"Acomodação {name} criada com sucesso!".encode('utf-8'))  # Envia uma mensagem dizendo que criou
-            self.notify_all_users(f"{user} criou a acomodação {name} em {location}.")  # Notifica para todos os usuários que uma acomodação foi criada
+            self.notify_all_users(f"{user} criou a acomodação {name} em {location}.", exclude_addr = addr)  # Notifica para todos os usuários que uma acomodação foi criada
 
     def list_my_accommodations(self, addr):
         user = self.users[addr]  # pegar o nome do usuário desse endereço
@@ -180,7 +180,7 @@ class Servidor:
         self.reservations.pop(key)
         self.rdt.send(addr, f"Reserva cancelada: {name} em {location} no dia {day}".encode('utf-8'))
         self.notify_user(owner, f"{user} cancelou a reserva da sua acomodação {name} em {location} no dia {day}")
-        self.notify_all_users(f"Acomodação {name} em {location} agora está disponível no dia {day}")
+        self.notify_all_users(f"Acomodação {name} em {location} agora está disponível no dia {day}", exclude_addr = addr)
 
     def notify_user(self, user, message):
         for addr, username in self.users.items():
@@ -188,9 +188,10 @@ class Servidor:
                 self.rdt.send(addr, message.encode('utf-8'))
                 break
 
-    def notify_all_users(self, message):
+    def notify_all_users(self, message, exclude_addr=None):
         for addr in self.users:
-            self.rdt.send(addr, message.encode('utf-8'))
+            if addr != exclude_addr:
+                self.rdt.send(addr, message.encode('utf-8'))
 
 
 def main_servidor():
