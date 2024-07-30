@@ -5,7 +5,7 @@ import random
 
 
 MAX_BUFFER = 1024  # Define o tamanho máximo dos dados que podem ser recebidos pelo socket
-ADDR_BIND = ('localhost', 0)  # Define o endereço e a porta onde o cliente se vinculará
+ADDR_BIND = ('localhost', 8080)  # Define o endereço e a porta onde o cliente se vinculará
 ADDR_TARGET = ('127.0.0.1', 7070)  # Define o endereço e a porta do servidor de destino
 
 LOSS_PROBABILITY = 0  # Define a probabilidade de perda de pacotes (0 = sem perda)
