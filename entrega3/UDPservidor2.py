@@ -19,8 +19,8 @@ class RDT:
         if random.random() < LOSS_PROBABILITY:
             # print(f"Simulando perda de pacote seq_num: {self.seq_num}")
             return  # Simula a perda do pacote, enviando nada
-
-        # Cria um pacote com o número de sequência e mensagem
+ 
+       # Cria um pacote com o número de sequência e mensagem
         time.sleep(0.1)
         packet = f"{self.seq_num}|".encode('utf-8') + msg
         self.socket.sendto(packet, addr)  # envia o pacote
