@@ -1,14 +1,14 @@
-import socket as skt  # Importa o módulo de sockets para comunicação de rede
-import random  # Importa o módulo random para geração de números aleatórios
-import threading  # Importa o módulo threading para execução simultânea
-import time  # Importa o módulo de tempo
+import socket as skt  
+import random  
+import threading
+import time  
 
-# Define constantes
+
 MAX_BUFFER = 1024  # Define o tamanho máximo dos dados a serem recebidos pelo socket
 ADDR_BIND = ('localhost', 7070)  # Define o endereço e a porta onde o servidor se vinculará
 LOSS_PROBABILITY = 0.0  # Define a probabilidade de perda de pacotes (0.0 = sem perda)
 
-# Classe RDT (Reliable Data Transfer) para gerenciar a transferência confiável de dados
+# Classe RDT 3.0 (Feita nas etapas anteriores) para gerenciar a transferência confiável de dados
 class RDT:
     def __init__(self, socket, max_buffer):
         self.socket = socket  # Armazena o socket para comunicação
@@ -18,14 +18,12 @@ class RDT:
     def send(self, addr, msg):
         # Simula a perda de pacotes com a probabilidade definida
         if random.random() < LOSS_PROBABILITY:
-            # print(f"Simulando perda de pacote seq_num: {self.seq_num}")
             return  # Simula a perda do pacote, não enviando nada
 
         # Cria um pacote com o número de sequência e a mensagem
         time.sleep(0.1)  # Adiciona um atraso para simulação
         packet = f"{self.seq_num}|".encode('utf-8') + msg
         self.socket.sendto(packet, addr)  # Envia o pacote para o endereço especificado
-        # print(f"Enviado pacote seq_num: {self.seq_num}")
         self.seq_num = 1 - self.seq_num  # Alterna o número de sequência entre 0 e 1
 
     def receive(self):
@@ -39,7 +37,6 @@ class RDT:
                 # Envia um ACK confirmando o recebimento
                 time.sleep(0.1)  # Adiciona um atraso para simulação
                 self.socket.sendto(f"ACK{recv_seq_num}".encode('utf-8'), addr)
-                # print(f"Envia ACK pacote num {recv_seq_num}")
                 self.seq_num = 1 - self.seq_num  # Alterna o número de sequência
                 return msg, addr  # Retorna a mensagem e o endereço
 
@@ -84,11 +81,10 @@ class Servidor:
         else:
             print("Comando desconhecido:", parts[0])  # Mensagem para comando desconhecido
         if(self.send_count % 2 == 0):
-            self.rdt.send(client_addr, b"")  # Envia pacote vazio
+            self.rdt.send(client_addr, b"")  # Envia pacote vazio para sincronização de ACK
         self.send_count = 0  # Reseta contador de envios
 
     def login(self, msg, addr):
-        # print("Entrou no login do servidor")
         _, username = msg.split()  # Divide a mensagem recebida
         if username in self.users.values():  # Verifica se o nome de usuário já existe
             self.rdt.send(addr, b"Nome de usuario ja esta em uso.")
@@ -188,19 +184,19 @@ class Servidor:
 
     def cancel_reservation(self, msg, addr):
         parts = msg.split()
-        if len(parts) < 4:
+        if len(parts) < 4: # Verifica se há a quantidade necessária de argumentos
             self.rdt.send(addr, b"Argumentos insuficientes para cancelar reserva.")
             self.send_count += 1
-            return
+            return # Se não houver retorna um erro
         _, owner, name, location, day = parts
         key = (name, location, day)
-        if key not in self.reservations:
-            self.rdt.send(addr, b"Reserva nao encontrada.")
+        if key not in self.reservations: # Verifica se a reserva existe
+            self.rdt.send(addr, b"Reserva nao encontrada.") # Se ela não existir, envia um erro 
             self.send_count += 1
             return
         user = self.users[addr]
-        if self.reservations[key]['user'] != user:
-            self.rdt.send(addr, b"Voce nao pode cancelar uma reserva que nao fez.")
+        if self.reservations[key]['user'] != user: # Verifica se o usuário que quer cancelar a reserva é o mesmo que fez a reserva
+            self.rdt.send(addr, b"Voce nao pode cancelar uma reserva que nao fez.") # Se não for, retorna um erro
             self.send_count += 1
             return
         self.accommodations[(name, location)]['availability'].append(day)  # Adiciona o dia de volta à disponibilidade
@@ -211,15 +207,15 @@ class Servidor:
         self.send_count += 1
         self.notify_all_users(f"Acomodação {name} em {location} agora está disponível no dia {day}", exclude_addr=addr)
 
-    def notify_user(self, user, message):
+    def notify_user(self, user, message): # Função um usuário específico
         for addr, username in self.users.items():
             if username == user:
                 self.rdt.send(addr, message.encode('utf-8'))
                 break
 
-    def notify_all_users(self, message, exclude_addr=None):
+    def notify_all_users(self, message, exclude_addr=None): # Função para notificar todos os usuários (exceto o que ativa a função)
         for addr in self.users:
-            if addr != exclude_addr:
+            if addr != exclude_addr: #Não envia nada para o usuário que ativa a função
                 self.send_count += 1
                 self.rdt.send(addr, message.encode('utf-8'))
 
