@@ -18,7 +18,7 @@ class RDT:
 
     def send(self, addr, msg):
         # Simula a perda de pacotes com a probabilidade definida na parte de cima do código
-        print("entrou RDT")
+        #print("entrou RDT")
         # if random.random() < LOSS_PROBABILITY:
         #    print(f"Simulando perda de pacote seq_num: {self.seq_num}")
         #    return  # Simula a perda do pacote
@@ -39,7 +39,7 @@ class RDT:
             if recv_seq_num == self.seq_num:
                 # envia o ACK confirmando o recebimento
                 self.socket.sendto(f"ACK{recv_seq_num}".encode('utf-8'), addr)
-                print(f"Recebido e confirmado pacote seq_num: {recv_seq_num}")
+                #print(f"Recebido e confirmado pacote seq_num: {recv_seq_num}")
                 self.seq_num = 1 - self.seq_num  # alterna o num de seq
                 return msg, addr  # retorna a mensagem e o endereço pro servidor
 
@@ -53,7 +53,7 @@ class Cliente:
         self.running = True
 
     def login(self, username):
-        print("ta em login")
+        #print("ta em login")
         self.rdt.send(self.server_addr, f"login {username}".encode('utf-8'))
         #msg, _ = self.rdt.receive()
         #print(msg.decode('utf-8'))
@@ -117,7 +117,7 @@ def main_cliente():
         while True:
             command = input("> ")
             if command.startswith("login"):
-                print("ta no case login")
+                #print("ta no case login")
                 _, username = command.split()
                 client.login(username)
             elif command == "logout":
