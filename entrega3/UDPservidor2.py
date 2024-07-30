@@ -2,6 +2,7 @@ import socket as skt
 import random
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 MAX_BUFFER = 1024  # tamanho máximo dos dados
 ADDR_BIND = ('localhost', 7070)  # endereço e porta do servidor
@@ -53,9 +54,8 @@ class Servidor:
         self.reservations = {}  # cria uma instância das reservas
         self.send_count = 0
 
-    def handle_client(self):
+    def handle_client(self, msg, client_addr):
         # Lida com as mensagens do cliente
-        msg, client_addr = self.rdt.receive()
         print("Entrou na função do switch")
         msg = msg.decode('utf-8')
         parts = msg.split()
@@ -82,12 +82,9 @@ class Servidor:
             self.cancel_reservation(msg, client_addr)
         else:
             print("Comando desconhecido:", parts[0])
-        if(self.send_count%2==0):
-            self.rdt.send(client_addr,b"")
-            self.send_count=0
-
-
-
+        if self.send_count % 2 == 0:
+            self.rdt.seq_num = 1 - self.rdt.seq_num
+        self.send_count = 0
 
     def login(self, msg, addr):
         print("Entrou no login do servidor")
@@ -230,12 +227,14 @@ def main_servidor():
     server = Servidor(skt.AF_INET, skt.SOCK_DGRAM, ADDR_BIND, MAX_BUFFER)
     print(f"Servidor escutando em {ADDR_BIND}")
 
-    try:
-        while True:
-            threading.Thread(target=server.handle_client).start()
-    except KeyboardInterrupt:
-        print("Encerrando o cliente...")
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        try:
+            while True:
+                msg, client_addr = server.rdt.receive()
+                executor.submit(server.handle_client, msg, client_addr)
+        except KeyboardInterrupt:
+            print("Encerrando o servidor...")
 
 
 if __name__ == "__main__":
-    main_servidor()  # inicia o servidor
+    main_servidor()
