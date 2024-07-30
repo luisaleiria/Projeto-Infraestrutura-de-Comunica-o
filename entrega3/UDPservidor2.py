@@ -24,7 +24,7 @@ class RDT:
         time.sleep(0.1)
         packet = f"{self.seq_num}|".encode('utf-8') + msg
         self.socket.sendto(packet, addr)  # envia o pacote
-        print(f"Enviado pacote seq_num: {self.seq_num}")
+        #print(f"Enviado pacote seq_num: {self.seq_num}")
         self.seq_num = 1 - self.seq_num  # alterna entre 0 e 1
 
     def receive(self):
@@ -56,7 +56,7 @@ class Servidor:
     def handle_client(self):
         # Lida com as mensagens do cliente
         msg, client_addr = self.rdt.receive()
-        print("Entrou na função do switch")
+        #print("Entrou na função do switch")
         msg = msg.decode('utf-8')
         parts = msg.split()
         print(f"Mensagem recebida de {client_addr}: {msg}")
@@ -64,7 +64,7 @@ class Servidor:
 
         # Switch case para entrada nos comandos certos
         if parts[0] == "login":
-            print("Entrou no login do switch")
+            #print("Entrou no login do switch")
             self.login(msg, client_addr)
         elif parts[0] == "logout":
             self.logout(client_addr)
@@ -83,14 +83,14 @@ class Servidor:
         else:
             print("Comando desconhecido:", parts[0])
         if(self.send_count%2==0):
-            self.rdt.send(client_addr,b"")
-            self.send_count=0
+           self.rdt.send(client_addr,b"")
+        self.send_count=0
 
 
 
 
     def login(self, msg, addr):
-        print("Entrou no login do servidor")
+        #print("Entrou no login do servidor")
         _, username = msg.split()  # Divide a mensagem recebida, login primeiro e nome de usuário depois
         if username in self.users.values():  # Verifica se o nome de usuário já existe
             self.rdt.send(addr, b"Nome de usuario ja esta em uso.")
